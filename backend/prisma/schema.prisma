@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id              String            @id @default(uuid())
+  email           String            @unique
+  hash            String
+  role            Role
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  name            String
+  gender          String?
+  skillLevel      String?
+  learningIntrest String?
+
+  courses         Course[]          @relation("InstructorCourses")
+  enrollments     Enrollment[]
+  lectureProgress LectureProgress[]
+  quizAttempt     QuizAttempt[]
+}
+
+model Course {
+  id           String       @id @default(uuid())
+  title        String
+  description  String
+  price        Float?
+  thumbnail    String?
+  instructorId String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  instructor   User         @relation("InstructorCourses", fields: [instructorId], references: [id])
+  enrollments  Enrollment[]
+  sections     Section[]
+  status       CourseStatus @default(DRAFT)
+}
+
+model Enrollment {
+  id         String   @id @default(uuid())
+  studentId  String
+  courseId   String
+  enrolledAt DateTime @default(now())
+  progress   Float    @default(0.0)
+  course     Course   @relation(fields: [courseId], references: [id])
+  student    User     @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, courseId])
+}
+
+model Section {
+  id       String    @id @default(uuid())
+  title    String
+  courseId String
+  lectures Lecture[]
+  course   Course    @relation(fields: [courseId], references: [id])
+}
+
+model Lecture {
+  id              String            @id @default(uuid())
+  title           String
+  videoUrl        String
+  duration        Int
+  order           Int
+  sectionId       String
+  section         Section           @relation(fields: [sectionId], references: [id])
+  lectureProgress LectureProgress[]
+  quiz            Quiz[]
+}
+
+model LectureProgress {
+  id        String   @id @default(uuid())
+  studentId String
+  lectureId String
+  watchedAt DateTime @default(now())
+  completed Boolean  @default(false)
+  lecture   Lecture  @relation(fields: [lectureId], references: [id])
+  student   User     @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, lectureId])
+}
+
+model Quiz {
+  id        String   @id @default(uuid())
+  lecture   Lecture  @relation(fields: [lectureId], references: [id])
+  lectureId String
+  question  String
+  options   String[]  // ["A", "B", "C", "D"]
+  answer    String    // correct option
+
+  quizAttempt QuizAttempt[]
+}
+
+model QuizAttempt {
+  id          String   @id @default(uuid())
+  student     User     @relation(fields: [studentId], references: [id])
+  studentId   String
+  quiz        Quiz     @relation(fields: [quizId], references: [id])
+  quizId      String
+  selected    String
+  correct     Boolean
+  attemptedAt DateTime @default(now())
+}
+
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum CourseStatus {
+  DRAFT      // Just created by instructor
+  UNDER_REVIEW
+  PUBLISHED   // Admin has approved + added price
+  REJECTED
+}

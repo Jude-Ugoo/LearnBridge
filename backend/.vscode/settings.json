@@ -1,0 +1,7 @@
+{
+  "files.autoSave": "afterDelay",
+  "prettier.tabWidth": 4,
+  "editor.formatOnSave": true,
+  "editor.fontFamily": "Fira Code, Consolas, 'Courier New', monospace",
+  "prettier.useTabs": true
+}
