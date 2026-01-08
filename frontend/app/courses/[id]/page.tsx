@@ -7,15 +7,15 @@ import TopBanner from "@/components/TopBanner";
 import VideoHighlightSection from "@/components/VideoHighlightSection";
 
 interface CourseDetailPageProps {
-	params: {
+	params: Promise<{
 		id: string;
-	};
+	}>;
 }
 
 export default async function CourseDetailPage({
 	params,
 }: CourseDetailPageProps) {
-	const { id } = params;
+	const { id } = await params;
 	const course = await getCourseDetail(id);
 
 	if (!course) {
